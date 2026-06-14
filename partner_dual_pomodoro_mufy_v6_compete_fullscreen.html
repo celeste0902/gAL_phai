@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>搭档双线番茄钟｜Mufy 联动 V6</title>
+<style>
+:root{
+  --bg:#0b1020;--panel:#111827;--card:#172033;--soft:#d7e2ff;--text:#eef3ff;
+  --muted:#9aa8c7;--accent:#8fb3ff;--ok:#9cf2c0;--warn:#ffd28f;--danger:#ff8f9f;
+  --line:rgba(255,255,255,.12);--r:22px;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(143,179,255,.26), transparent 32%),
+    radial-gradient(circle at 88% 12%, rgba(156,242,192,.09), transparent 26%),
+    linear-gradient(145deg,#070a13,#10172a 58%,#0b1020);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  display:flex;justify-content:center;align-items:flex-start;padding:18px 12px 36px;
+}
+.app{width:100%;max-width:450px;background:rgba(15,20,34,.76);border:1px solid var(--line);border-radius:30px;box-shadow:0 18px 55px rgba(0,0,0,.36);overflow:hidden;backdrop-filter:blur(18px)}
+.header{padding:18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02))}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+h1{font-size:20px;line-height:1.15;margin:0 0 5px}
+.sub{font-size:12px;color:var(--muted)}
+.pill{padding:7px 10px;border-radius:999px;background:rgba(143,179,255,.12);border:1px solid rgba(143,179,255,.35);color:#bdd3ff;font-size:12px;white-space:nowrap}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.stat{padding:10px 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}
+.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+main{padding:16px;display:flex;flex-direction:column;gap:14px}
+.card{background:rgba(23,32,51,.78);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:14px}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0}.card small{font-size:11px;color:var(--muted)}
+.timer{
+  position:relative;overflow:hidden;padding:18px;border-radius:var(--r);
+  background:linear-gradient(180deg,rgba(32,41,66,.95),rgba(17,24,39,.95));
+  border:1px solid rgba(255,255,255,.12)
+}
+.timer:before{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-90px;top:-90px;background:rgba(143,179,255,.12);filter:blur(8px)}
+.modes{display:flex;gap:8px;position:relative;z-index:1}
+.mode{flex:1;padding:9px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:12px;font-weight:800}
+.mode.active{background:rgba(143,179,255,.2);border-color:rgba(143,179,255,.55);color:var(--text)}
+.time{position:relative;z-index:1;text-align:center;font-size:68px;font-weight:900;letter-spacing:-.05em;margin:17px 0 6px;font-variant-numeric:tabular-nums}
+.coach{position:relative;z-index:1;text-align:center;color:var(--muted);font-size:13px;min-height:20px}
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;margin:16px 0 14px;position:relative;z-index:1}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:.25s}
+.actions{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:9px;position:relative;z-index:1}
+button,label.fake-btn{-webkit-tap-highlight-color:transparent;cursor:pointer;font-family:inherit}
+.primary,.secondary,.ghost,.mini,label.fake-btn{border-radius:16px;padding:11px 10px;font-size:14px;font-weight:800}
+.primary{border:0;background:linear-gradient(180deg,#d4e3ff,#8fb3ff);color:#08111f}
+.secondary{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.11);color:var(--text)}
+.ghost{border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted)}
+.mini,label.fake-btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:var(--text);text-align:center}
+textarea,input,select{
+  width:100%;border:1px solid rgba(255,255,255,.1);background:rgba(2,6,23,.32);color:var(--text);
+  border-radius:14px;outline:none;padding:10px 11px;font-family:inherit;font-size:13px
+}
+textarea{resize:vertical;min-height:64px;line-height:1.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.045);margin-bottom:10px}
+.row span{font-size:13px;color:var(--soft)}.row small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.row input[type=checkbox]{width:22px;height:22px;accent-color:#8fb3ff}
+.warn{border:1px solid rgba(255,210,143,.35);background:rgba(255,210,143,.08);color:#ffe0ad;border-radius:15px;padding:9px 10px;font-size:12px;line-height:1.45;margin-bottom:10px}
+.ok{border:1px solid rgba(156,242,192,.35);background:rgba(156,242,192,.08);color:#caffdd;border-radius:15px;padding:9px 10px;font-size:12px;line-height:1.45;margin-bottom:10px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.tab{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);color:var(--muted);border-radius:14px;padding:10px;font-weight:900}
+.tab.active{background:rgba(143,179,255,.18);color:var(--text);border-color:rgba(143,179,255,.5)}
+.hidden{display:none!important}
+.prompt{min-height:210px;font-size:12px;white-space:pre-wrap}
+.internal-import{max-height:0;overflow:hidden;opacity:0;pointer-events:none}
+.parse-status{font-size:13px;line-height:1.5;color:var(--soft)}
+.timetable{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.tt-item{display:grid;grid-template-columns:92px 1fr;gap:8px;padding:8px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.tt-item.active{border-color:rgba(255,210,143,.5);background:rgba(255,210,143,.08)}
+.tt-time{font-weight:900;color:#bdd3ff;font-size:12px}.tt-task{font-size:12px;color:var(--soft);line-height:1.4}
+.task-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.task-item{display:flex;gap:8px;align-items:flex-start;padding:9px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.task-item input{width:18px;height:18px;accent-color:#8fb3ff;margin-top:1px}.task-item label{flex:1;color:var(--soft);font-size:13px;line-height:1.35}.task-item.done label{text-decoration:line-through;color:var(--muted)}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.score>div{padding:10px;border-radius:16px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}.score b{font-size:20px}.score span{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.bg-preview{height:120px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:linear-gradient(135deg,#1a243d,#0f1629 55%,#101a32);background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;margin-top:10px}
+.bg-preview span{padding:6px 10px;border-radius:999px;font-size:11px;background:rgba(8,13,25,.7);border:1px solid rgba(255,255,255,.12)}
+.face-grid{display:grid;grid-template-columns:1fr;gap:8px;max-height:220px;overflow:auto}
+.face{display:grid;grid-template-columns:54px 1fr;gap:10px;padding:8px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);border-radius:16px;align-items:center}
+.face img{width:54px;height:54px;object-fit:contain;border-radius:12px;background:rgba(255,255,255,.05)}.key{font-size:12px;color:#bdd3ff;font-weight:900;word-break:break-all}.desc{font-size:11px;color:var(--muted);line-height:1.35;margin-top:3px}
+.log{max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:7px}
+.log-item{border-left:3px solid rgba(143,179,255,.65);background:rgba(255,255,255,.045);padding:8px 9px;border-radius:8px 13px 13px 8px;color:var(--soft);font-size:12px;line-height:1.4}
+
+/* real webpage fullscreen */
+.full-gal{position:fixed;inset:0;width:100vw;height:100dvh;z-index:9999;display:none;overflow:hidden;color:#eef3ff;background:linear-gradient(135deg,#1a243d,#0f1629 55%,#101a32);background-size:cover;background-position:center}
+.full-gal.active{display:block}
+.full-gal:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,8,18,.18),rgba(4,8,18,.44) 32%,rgba(4,8,18,.76) 100%)}
+.gal-top{position:absolute;top:0;left:0;right:0;z-index:5;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px}
+.gal-hud{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}
+.hud-left,.hud-right{background:rgba(7,11,20,.46);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:10px 12px;backdrop-filter:blur(12px)}
+.hud-mode{font-size:12px;color:#bdd3ff;font-weight:900}.hud-task{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.4}
+.hud-time{font-size:34px;font-weight:900;letter-spacing:-.04em;text-align:right}.hud-sub{font-size:11px;color:var(--muted);text-align:right;margin-top:4px}
+.hud-progress{height:8px;border-radius:999px;background:rgba(255,255,255,.09);overflow:hidden;margin-top:10px}.hud-progress>div{height:100%;width:0;background:linear-gradient(90deg,#8fb3ff,#9cf2c0)}
+.baietime{margin-top:8px;font-size:12px;color:#ffe0ad;line-height:1.35}
+.gal-center{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:110px 3vw 190px;z-index:2}
+.gal-portrait{width:min(43vw,420px);max-height:68vh;object-fit:contain;object-position:bottom right;filter:drop-shadow(0 24px 38px rgba(0,0,0,.46))}
+.side-panel{position:absolute;left:14px;top:122px;bottom:190px;width:min(34vw,360px);z-index:4;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
+.side-card{background:rgba(7,11,20,.46);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:10px;backdrop-filter:blur(12px);overflow:auto}
+.side-card h3{font-size:12px;margin:0 0 8px;color:#bdd3ff}.side-card .tt-item,.side-card .task-item{padding:7px}.side-card .tt-time,.side-card .tt-task,.side-card label{font-size:11px}
+.gal-bottom{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:0 14px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.dialogue{background:linear-gradient(180deg,rgba(9,14,25,.82),rgba(9,14,25,.94));border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:14px;box-shadow:0 -10px 36px rgba(0,0,0,.25);backdrop-filter:blur(18px)}
+.name{display:inline-block;padding:6px 10px;margin-bottom:8px;border-radius:12px 12px 12px 2px;background:rgba(143,179,255,.16);border:1px solid rgba(143,179,255,.35);color:#bdd3ff;font-weight:900;font-size:12px}
+.d-title{font-size:16px;font-weight:900;line-height:1.4}.d-meta{font-size:11px;color:var(--muted);margin-top:5px;word-break:break-all}
+.d-text{margin-top:10px;font-size:14px;line-height:1.72;color:var(--soft);min-height:92px;max-height:25vh;overflow:auto;white-space:pre-wrap}
+.d-foot{margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.chip{display:inline-block;padding:6px 10px;border-radius:999px;font-size:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.gal-controls{display:grid;grid-template-columns:repeat(6,auto);gap:8px;justify-content:end}
+.gal-btn{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#eef3ff;border-radius:14px;padding:9px 12px;font-weight:900;cursor:pointer}
+.gal-btn.primary{background:rgba(143,179,255,.2);border-color:rgba(143,179,255,.45);color:#eef3ff}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:rgba(8,13,25,.92);border:1px solid rgba(255,255,255,.15);color:var(--text);padding:10px 14px;border-radius:999px;box-shadow:0 8px 30px rgba(0,0,0,.3);font-size:13px;transition:.25s;max-width:calc(100vw - 28px);text-align:center;z-index:10000}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:700px){
+  .gal-hud{grid-template-columns:1fr}.hud-time,.hud-sub{text-align:left}.gal-center{padding:160px 4vw 255px}.gal-portrait{width:min(70vw,320px);max-height:45vh}
+  .side-panel{position:absolute;left:14px;right:14px;top:132px;bottom:auto;width:auto;max-height:122px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden}.side-card{max-height:122px}
+  .d-foot{grid-template-columns:1fr}.gal-controls{grid-template-columns:1fr 1fr 1fr}
+}
+@media (max-width:380px){.time{font-size:58px}.actions,.grid2,.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){grid-column:1/3}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+  <div class="top">
+    <div><h1>搭档双线番茄钟</h1><div class="sub">Mufy 联动 V6｜开始专注文案、触摸文案、双线竞速、网页全屏</div></div>
+    <div class="pill" id="statePill">待机中</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="doneCount">0</b><span>今日番茄</span></div>
+    <div class="stat"><b id="focusMin">0</b><span>专注分钟</span></div>
+    <div class="stat"><b id="cycleText">0/4</b><span>长休进度</span></div>
+  </div>
+</header>
+
+<main>
+<section class="timer">
+  <div class="modes">
+    <button class="mode active" data-mode="focus">专注</button>
+    <button class="mode" data-mode="short">短休</button>
+    <button class="mode" data-mode="long">长休</button>
+  </div>
+  <div class="time" id="timeDisplay">25:00</div>
+  <div class="coach" id="coachLine">选择一个小目标，按下开始。</div>
+  <div class="bar"><div id="progress"></div></div>
+  <div class="actions">
+    <button class="primary" id="startBtn">开始</button>
+    <button class="secondary" id="pauseBtn">暂停</button>
+    <button class="ghost" id="resetBtn">重置</button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>计划输入</h2><small>用户任务 + 白厄独立时间表</small></div>
+  <textarea id="userTask" placeholder="写今天要做的计划，每行/分号/顿号都可以被拆成勾选任务。例：复习 COMS3200 delay 题；整理角色卡 layer 3；修 Mufy 表情触发逻辑"></textarea>
+  <div class="grid2">
+    <input id="planStart" type="time" />
+    <input id="planEnd" type="time" />
+  </div>
+  <div class="grid2">
+    <select id="energy"><option>低电量</option><option selected>普通</option><option>高能</option></select>
+    <select id="strict"><option>温柔陪跑</option><option selected>正常监督</option><option>白老师上线</option></select>
+  </div>
+  <textarea id="partnerTask" placeholder="Mufy 写文设定：例：白厄在图书馆靠窗陪 user 拆任务，用番茄钟把计划压成能开始的一小段。" style="margin-top:8px"></textarea>
+  <div class="grid2">
+    <select id="phase"><option>准备开始</option><option>专注中</option><option>卡住了</option><option>完成一轮</option><option>休息中</option><option>夜间收束</option></select>
+    <select id="purpose"><option>进入状态</option><option>拆计划</option><option>沉浸式学习</option><option>温柔监督</option><option>正常推进</option><option>严格提醒</option><option>卡住安抚</option><option>完成反馈</option><option>休息提醒</option><option>今日复盘</option><option>下一轮衔接</option></select>
+  </div>
+  <input id="atmosphere" placeholder="当前地点与氛围：图书馆靠窗，上午，有点困，桌上摊着笔记和计时器" style="margin-top:8px" />
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>User 任务清单</h2><small>全屏里可见，可打钩，和白厄形成竞速感</small></div>
+  <div id="userTasks" class="task-list"></div>
+  <div class="score">
+    <div><b id="userScore">0</b><span>User 完成项</span></div>
+    <div><b id="baieScore">0</b><span>白厄推进项</span></div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="tabs">
+    <button class="tab active" data-tab="promptTab">生成 Mufy Prompt</button>
+    <button class="tab" data-tab="importTab">内部导入解析</button>
+  </div>
+
+  <div id="promptTab">
+    <div class="warn">这版会要求 Mufy 多写几幕：开始专注文案、沉浸式学习正文、触摸文案、完成反应、白厄时间表。</div>
+    <textarea id="promptOutput" class="prompt" readonly></textarea>
+    <div class="grid2">
+      <button class="primary" id="buildPrompt">生成 Prompt</button>
+      <button class="secondary" id="copyPrompt">复制 Prompt</button>
+    </div>
+  </div>
+
+  <div id="importTab" class="hidden">
+    <div class="warn">内部导入区。解析后可见文本会被清空，普通界面不展示脚本正文；正文只在全屏沉浸学习中逐句播放。</div>
+    <textarea id="mufyInput" class="internal-import"></textarea>
+    <textarea id="visiblePaste" style="min-height:130px" placeholder="把 Mufy 输出粘贴在这里，点解析后会自动清空可见区域。"></textarea>
+    <div class="grid2">
+      <button class="primary" id="parseBtn">解析并隐藏正文</button>
+      <button class="secondary" id="clearImport">清空内部导入</button>
+    </div>
+    <div id="parseStatus" class="parse-status" style="margin-top:10px">尚未导入脚本。</div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>白厄时间表</h2><small>现实时间推进，不随用户暂停停止</small></div>
+  <div id="baieNow" class="ok">白厄当前任务：等待 Mufy 生成时间表。</div>
+  <div id="timetable" class="timetable"></div>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>网页全屏沉浸设置</h2><small>真正覆盖整个网页视口，可尝试浏览器全屏 API</small></div>
+  <div class="row">
+    <div><span>开始专注时自动打开全屏沉浸学习</span><small>点击开始后先播放导入的“开始专注”文案，再进入沉浸学习脚本。</small></div>
+    <input type="checkbox" id="autoOpenGal" checked />
+  </div>
+  <input id="focusBgUrl" placeholder="贴入专注场景背景图 URL（可选）" />
+  <div class="grid3">
+    <button class="mini" id="applyBgUrl">使用 URL</button>
+    <label class="fake-btn" for="focusBgFile">上传图片</label>
+    <button class="mini" id="clearBgBtn">默认背景</button>
+  </div>
+  <input type="file" id="focusBgFile" accept="image/*" class="hidden" />
+  <div class="bg-preview" id="bgPreview"><span id="bgPreviewLabel">当前：默认背景</span></div>
+  <div class="grid2" style="margin-top:10px">
+    <button class="primary" id="openFullGal">手动打开网页全屏</button>
+    <button class="secondary" id="nextBeatBtn">下一句 / 下一页</button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>表情白名单</h2><small>点击复制 key</small></div>
+  <div class="face-grid" id="faceGrid"></div>
+</section>
+
+<section class="card">
+  <div class="card-head"><h2>监督记录</h2><small>完成一轮自动写入</small></div>
+  <div class="log" id="log"></div>
+</section>
+
+<div class="grid2">
+  <button class="secondary" id="copyPlan">复制今日计划</button>
+  <button class="ghost" id="clearDay">清空今日</button>
+</div>
+</main>
+</div>
+
+<div class="full-gal" id="fullGal">
+  <div class="gal-top">
+    <div class="gal-hud">
+      <div class="hud-left">
+        <div class="hud-mode" id="fsMode">专注待机</div>
+        <div class="hud-task" id="fsTask">本轮目标：等待填写</div>
+        <div class="baietime" id="fsBaie">白厄当前任务：等待时间表</div>
+        <div class="hud-progress"><div id="fsProgress"></div></div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-time" id="fsTime">25:00</div>
+        <div class="hud-sub" id="fsSub">0/4 长休进度</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="side-card">
+      <h3>User 任务</h3>
+      <div id="fsUserTasks"></div>
+    </div>
+    <div class="side-card">
+      <h3>白厄计划</h3>
+      <div id="fsBaieTable"></div>
+    </div>
+  </div>
+
+  <div class="gal-center"><img class="gal-portrait" id="fsPortrait" alt="白厄立绘" /></div>
+
+  <div class="gal-bottom">
+    <div class="dialogue">
+      <div class="name" id="speakerName">白厄</div>
+      <div class="d-title" id="fsTitle">等待脚本</div>
+      <div class="d-meta" id="fsMeta">导入后会逐句切换白厄表情。</div>
+      <div class="d-text" id="fsText">开始专注时会优先播放 AI 生成的开始专注文案，随后进入沉浸式学习正文。触摸白厄立绘或点击“触摸”会播放触摸文案。</div>
+      <div class="d-foot">
+        <span class="chip" id="fsPage">第 1 句 / 共 1 句</span>
+        <div class="gal-controls">
+          <button class="gal-btn" id="fsPrev">上一句</button>
+          <button class="gal-btn primary" id="fsNext">下一句</button>
+          <button class="gal-btn" id="fsTouch">触摸</button>
+          <button class="gal-btn" id="fsPause">暂停</button>
+          <button class="gal-btn" id="fsClose">退出</button>
+          <button class="gal-btn" id="fsRealFull">网页全屏</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+const sprite={
+bai_e_01_default_tender:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E9%BB%98%E8%AE%A4%E6%B8%A9%E6%9F%94.png',
+bai_e_02_calm_explain:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%B9%B3%E9%9D%99%E8%AF%B4%E6%98%8E.png',
+bai_e_03_relieved_smile:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E9%97%AD%E7%9C%BC%E5%AE%89%E5%BF%83%E7%AC%91.png',
+bai_e_04_leave_it_to_me:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E4%BA%A4%E7%BB%99%E6%88%91%E5%90%A7.png',
+bai_e_05_indulgent_resigned:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%AE%A0%E6%BA%BA%E6%97%A0%E5%A5%88.png',
+bai_e_06_resigned_complain:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E6%97%A0%E5%A5%88%E5%90%90%E6%A7%BD.png',
+bai_e_07_teasing_probe:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%AE%A1%E8%A7%86%E8%B0%83%E4%BE%83.png',
+bai_e_08_calm_alert:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%86%B7%E9%9D%99%E8%AD%A6%E6%83%95.png',
+bai_e_09_serious_listen:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E4%B8%A5%E8%82%83%E5%80%BE%E5%90%AC.png',
+bai_e_10_displeased_stern:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E4%B8%A5%E8%82%83%E4%B8%8D%E6%82%A6.png',
+bai_e_11_cold_anger:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%A4%B1%E6%9C%9B%E5%86%B7%E6%80%92.png',
+bai_e_12_hesitate:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E6%AC%B2%E8%A8%80%E5%8F%88%E6%AD%A2.png',
+bai_e_13_worried_pained:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%BF%83%E7%96%BC%E6%8B%85%E5%BF%83.png',
+bai_e_14_forced_smile:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%BC%BA%E6%92%91%E5%BE%AE%E7%AC%91.png',
+bai_e_15_surprised:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E6%84%8F%E5%A4%96%E6%83%8A%E8%AE%B6.png',
+bai_e_16_shy_worried:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E7%BE%9E%E6%B6%A9%E6%8B%85%E5%BF%83.png',
+bai_e_17_flustered:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E5%BF%83%E5%8A%A8%E6%85%8C%E4%B9%B1.png',
+bai_e_18_shy_tender_smile:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E7%BE%9E%E6%B6%A9%E6%B8%A9%E6%9F%94%E7%AC%91.png',
+bai_e_19_battle_authority:'https://raw.githubusercontent.com/celeste0902/gAL_phai/main/%E7%A5%9E%E5%8E%84%E4%B8%A5%E8%82%83.png'
+};
+const meta={
+bai_e_01_default_tender:'默认温柔｜普通陪伴、低压沟通',bai_e_02_calm_explain:'平静说明｜拆计划、解释任务',bai_e_03_relieved_smile:'安心笑｜完成一轮、压力下降',bai_e_04_leave_it_to_me:'交给我吧｜可靠接管、稳定陪跑',bai_e_05_indulgent_resigned:'宠溺无奈｜轻松纵容、轻微拖延',bai_e_06_resigned_complain:'无奈吐槽｜轻喜剧、荒谬状况',bai_e_07_teasing_probe:'审视调侃｜轻微试探、调侃',bai_e_08_calm_alert:'冷静警惕｜明确风险、硬提醒',bai_e_09_serious_listen:'严肃倾听｜听进度、接收信息',bai_e_10_displeased_stern:'严肃不悦｜保护性施压、过度硬撑',bai_e_11_cold_anger:'失望冷怒｜重冲突，日常慎用',bai_e_12_hesitate:'欲言又止｜情绪克制',bai_e_13_worried_pained:'心疼担心｜疲惫、透支',bai_e_14_forced_smile:'强撑微笑｜白厄自身不太好',bai_e_15_surprised:'意外惊讶｜突发变化',bai_e_16_shy_worried:'羞涩担心｜亲密不确定',bai_e_17_flustered:'心动慌乱｜被逗到、情绪失守',bai_e_18_shy_tender_smile:'羞涩温柔笑｜温柔收束',bai_e_19_battle_authority:'神厄严肃｜高危异常、神性压迫'
+};
+const $=id=>document.getElementById(id);
+const storeKey='mufy_pomodoro_v6_compete';
+const defaults={mode:'focus',dur:{focus:1500,short:300,long:900},remaining:1500,running:false,done:0,focusMin:0,cycle:0,userTask:'',partnerTask:'',atmosphere:'',phase:'准备开始',purpose:'进入状态',energy:'普通',strict:'正常监督',planStart:'09:00',planEnd:'11:00',autoOpen:true,bgUrl:'',bgData:'',prompt:'',raw:'',startBeats:[],studyBeats:[],touchBeats:[],completeBeats:[],activeTrack:'study',beatIndex:0,timetable:[],tasks:[],log:[]};
+let s=load(),timer=null,last=Date.now(),clockTimer=null;
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(storeKey)||'{}'),dur:defaults.dur}}catch(e){return {...defaults}}}
+function save(){localStorage.setItem(storeKey,JSON.stringify(s))}
+function fmt(sec){return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function modeName(m){return m==='focus'?'专注':m==='short'?'短休':'长休'}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2200)}
+function total(){return s.dur[s.mode]}
+function splitTasks(txt){return txt.split(/[\n；;、]+/).map(x=>x.trim()).filter(Boolean).slice(0,10)}
+function sync(fromPrompt=true){
+ s.userTask=$('userTask').value;s.partnerTask=$('partnerTask').value;s.atmosphere=$('atmosphere').value;s.phase=$('phase').value;s.purpose=$('purpose').value;s.energy=$('energy').value;s.strict=$('strict').value;s.planStart=$('planStart').value||'09:00';s.planEnd=$('planEnd').value||'11:00';s.autoOpen=$('autoOpenGal').checked;s.bgUrl=$('focusBgUrl').value.trim();
+ let current=s.tasks.map(t=>t.text).join('|'), incoming=splitTasks(s.userTask).join('|');
+ if(current!==incoming){let old=s.tasks; s.tasks=splitTasks(s.userTask).map(t=>({text:t,done:(old.find(o=>o.text===t)||{}).done||false}))}
+ if(fromPrompt){s.prompt=buildPrompt();$('promptOutput').value=s.prompt}
+ save();applyBg();renderAll()
+}
+function render(){
+ $('timeDisplay').textContent=fmt(s.remaining);$('doneCount').textContent=s.done;$('focusMin').textContent=s.focusMin;$('cycleText').textContent=`${s.cycle}/4`;$('statePill').textContent=s.running?`${modeName(s.mode)}中`:'待机中';
+ $('coachLine').textContent=s.running?`本轮推进：${s.userTask||'一个小目标'}`:'选择一个小目标，按下开始。';
+ document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===s.mode));
+ $('progress').style.width=Math.min(100,(total()-s.remaining)/total()*100)+'%';
+ ['userTask','partnerTask','atmosphere','phase','purpose','energy','strict','planStart','planEnd','focusBgUrl'].forEach(id=>{if($(id))$(id).value=s[id]||''});
+ $('autoOpenGal').checked=s.autoOpen;$('promptOutput').value=s.prompt||buildPrompt();
+ renderFaces();renderLog();renderAll();applyBg()
+}
+function renderAll(){renderTasks();renderTable();renderHUD();renderScores()}
+function renderFaces(){const box=$('faceGrid');if(box.dataset.done)return;box.innerHTML='';Object.keys(sprite).forEach(k=>{let d=document.createElement('div');d.className='face';d.innerHTML=`<img src="${sprite[k]}"><div><div class="key">${k}</div><div class="desc">${meta[k]}</div></div>`;d.onclick=()=>navigator.clipboard.writeText(k).then(()=>toast('已复制 key'));box.appendChild(d)});box.dataset.done='1'}
+function renderLog(){const box=$('log');box.innerHTML=s.log.length?s.log.slice(-10).reverse().map(x=>`<div class="log-item">${x}</div>`).join(''):'<div class="log-item">暂无记录。</div>'}
+function renderTasks(){
+ const html=s.tasks.length?s.tasks.map((t,i)=>`<div class="task-item ${t.done?'done':''}"><input type="checkbox" data-task="${i}" ${t.done?'checked':''}><label>${t.text}</label></div>`).join(''):'<div class="task-item"><label>等待从计划中拆出任务。</label></div>';
+ $('userTasks').innerHTML=html;$('fsUserTasks').innerHTML=html;
+ document.querySelectorAll('[data-task]').forEach(ch=>ch.onchange=e=>{let i=+e.target.dataset.task;s.tasks[i].done=e.target.checked;if(e.target.checked){playCompleteReaction();toast('User 完成一项，白厄有反应了。')}save();renderAll()});
+}
+function renderScores(){let u=s.tasks.filter(t=>t.done).length,b=completedBaieCount();$('userScore').textContent=u;$('baieScore').textContent=b}
+function setMode(m){s.mode=m;s.running=false;s.remaining=s.dur[m];stop();save();render()}
+function start(){sync();if(timer)return;s.running=true;last=Date.now();timer=setInterval(tick,250);save();render();if(s.mode==='focus'){s.activeTrack='start';s.beatIndex=0;if(s.autoOpen)openGal();renderHUD()}}
+function stop(){s.running=false;if(timer){clearInterval(timer);timer=null}save();renderHUD();render()}
+function tick(){let now=Date.now(),d=Math.floor((now-last)/1000);if(d<=0)return;last=now;s.remaining-=d;if(s.remaining<=0){s.remaining=0;finish()}save();render();renderHUD()}
+function finish(){let m=s.mode;stop();beep();if(m==='focus'){s.done++;s.focusMin+=Math.round(s.dur.focus/60);s.cycle=(s.cycle+1)%4;s.log.push(`${new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})} 完成番茄：${s.userTask||'未命名任务'}`);s.activeTrack='complete';s.beatIndex=0;renderHUD();setMode(s.cycle===0?'long':'short');toast('一轮完成。')}else{setMode('focus');toast('休息结束。')}}
+function beep(){try{let c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.frequency.value=740;g.gain.setValueAtTime(.001,c.currentTime);g.gain.exponentialRampToValueAtTime(.16,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.45);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.48)}catch(e){}}
+function buildPrompt(){
+return `$暂停当前剧情，为我写一个不计入主线的沉浸式学习陪跑小剧场。不需要状态栏，不计入主线剧情，不推进原本危机线，标题自拟。
+
+这次请多写几幕，不要太短。需要包含：开始专注文案、沉浸式学习正文、触摸互动文案、user 完成任务后的白厄反应、白厄自己的独立时间表。中间要穿插环境描写、旁白、桌面/屏幕/计时器/背景声等氛围细节。
+
+【用户现实计划】
+${s.userTask||'暂未填写'}
+
+【用户自定义陪跑时段】
+${s.planStart||'09:00'} - ${s.planEnd||'11:00'}
+
+【当前状态】
+场景氛围：${s.atmosphere||'安静的书桌前，屏幕亮着，旁边有计时器和待完成任务。'}
+当前阶段：${s.phase}
+当前能量：${s.energy}
+监督强度：${s.strict}
+文案目标：${s.purpose}
+搭档线补充：${s.partnerTask||'白厄在旁边陪 user 拆计划，用番茄钟把任务压成能开始的一小段。'}
+
+请严格输出以下五个区块：
+
+<BAIE_TIMETABLE>
+根据 ${s.planStart||'09:00'} - ${s.planEnd||'11:00'} 生成白厄自己的独立计划表。白厄的计划要像他自己也在执行任务，不是单纯盯着 user。每 20-35 分钟一段，格式：
+09:00-09:25｜白厄整理 user 的任务清单，同时核对自己的训练/资料/巡查安排。
+09:25-09:30｜白厄短暂休息，检查水杯和终端消息。
+</BAIE_TIMETABLE>
+
+<START_FOCUS_SCRIPT>
+开始专注时播放的开场文案，建议 6-10 行，必须有环境旁白。白厄每一句台词都要带表情。
+格式：
+旁白：……
+白厄【表情：bai_e_02_calm_explain】：“……”
+正文：……
+</START_FOCUS_SCRIPT>
+
+<STUDY_SCRIPT>
+沉浸式学习正文，建议 18-35 行，分成几幕也可以，但不要用一幕一个表情；白厄每句台词单独标表情。中间穿插较多环境描写、旁白、桌面细节、计时器变化、user 与白厄并行推进的竞争感。
+</STUDY_SCRIPT>
+
+<TOUCH_SCRIPT>
+触摸白厄立绘时随机播放的互动文案，写 8-12 条。每条一到三行。白厄台词必须带表情。可以有一点轻微吐槽、提醒、安抚、被戳到的反应，但不要偏离学习。
+</TOUCH_SCRIPT>
+
+<USER_COMPLETE_REACTION>
+user 勾选完成一项任务时播放的白厄反应，写 6-10 条。每条一到三行，白厄台词必须带表情。体现“你完成一项，他会注意到”的搭档竞争感。
+</USER_COMPLETE_REACTION>
+
+通用要求：
+- 白厄每一句台词都必须带【表情：bai_e_xx_xxx】。
+- 旁白、正文不要带表情。
+- 不要代替 user 说话、决定、行动或完成任务。
+- 不要输出 HTML。
+- 文字要像沉浸式 GAL 正文，不要像任务通知。
+- 可以体现 user 和白厄各自都有计划、像双线竞速，但不要把白厄写成纯督学机器。
+- 结尾停在可继续互动的位置。
+
+【可用表情 key 白名单】
+${Object.keys(sprite).map(k=>`${k}：${meta[k]}`).join('\n')}
+
+请直接输出五个区块。`;
+}
+function parse(){
+ const text=$('visiblePaste').value.trim(); if(!text){toast('先粘贴 Mufy 输出');return}
+ s.raw=text;$('mufyInput').value=text;$('visiblePaste').value='';
+ s.timetable=parseTable(text);
+ s.startBeats=parseBeats(section(text,'START_FOCUS_SCRIPT'));
+ s.studyBeats=parseBeats(section(text,'STUDY_SCRIPT'));
+ s.touchBeats=parseBeats(section(text,'TOUCH_SCRIPT'));
+ s.completeBeats=parseBeats(section(text,'USER_COMPLETE_REACTION'));
+ s.activeTrack='start';s.beatIndex=0;
+ let all=[...s.startBeats,...s.studyBeats,...s.touchBeats,...s.completeBeats],invalid=all.filter(b=>b.face&&!sprite[b.face]).map(b=>b.face);
+ $('parseStatus').innerHTML=`<div class="${invalid.length?'warn':'ok'}">已内部解析：白厄时间表 ${s.timetable.length} 条；开始专注 ${s.startBeats.length} 句；沉浸学习 ${s.studyBeats.length} 句；触摸 ${s.touchBeats.length} 句；完成反应 ${s.completeBeats.length} 句。${invalid.length?'非法表情：'+[...new Set(invalid)].join('、'):'表情全部合法。'}<br>可见粘贴区已清空，正文只在网页全屏里播放。</div>`;
+ save();renderAll();toast('已解析并隐藏正文')
+}
+function section(text,name){return (text.match(new RegExp('<'+name+'>([\\s\\S]*?)<\\/'+name+'>','i'))||[])[1]||''}
+function parseTable(text){
+ let block=section(text,'BAIE_TIMETABLE');
+ return block.split('\n').map(x=>x.trim()).filter(Boolean).map(line=>{
+  let m=line.match(/(\d{1,2}:\d{2})\s*[-—–]\s*(\d{1,2}:\d{2})\s*[｜|]\s*(.+)/);
+  return m?{start:m[1],end:m[2],task:m[3]}:null;
+ }).filter(Boolean)
+}
+function parseBeats(block){
+ let beats=[],lastFace='bai_e_01_default_tender';
+ block.split('\n').map(x=>x.trim()).filter(Boolean).forEach(line=>{
+  if(/^<|^<\/|^#+/.test(line))return;
+  let m=line.match(/^白厄\s*【表情：([^】]+)】\s*[：:]\s*(.+)$/);
+  if(m){lastFace=m[1].trim();beats.push({speaker:'白厄',face:lastFace,text:m[2].trim()});return}
+  let n=line.match(/^(旁白|正文)\s*[：:]\s*(.+)$/);
+  if(n){beats.push({speaker:n[1],face:lastFace,text:n[2].trim()});return}
+  beats.push({speaker:'旁白',face:lastFace,text:line});
+ });
+ return beats
+}
+function renderTable(){
+ const tableHTML=s.timetable.length?s.timetable.map(x=>`<div class="tt-item ${isCurrentSlot(x)?'active':''}"><div class="tt-time">${x.start}-${x.end}</div><div class="tt-task">${x.task}</div></div>`).join(''):'<div class="tt-item"><div class="tt-time">--:--</div><div class="tt-task">等待 Mufy 输出白厄时间表。</div></div>';
+ $('timetable').innerHTML=tableHTML;$('fsBaieTable').innerHTML=tableHTML;$('baieNow').textContent='白厄当前任务：'+currentBaieTask()
+}
+function toMin(t){let [h,m]=t.split(':').map(Number);return h*60+m}
+function nowMin(){let d=new Date();return d.getHours()*60+d.getMinutes()}
+function isCurrentSlot(x){let n=nowMin();return n>=toMin(x.start)&&n<toMin(x.end)}
+function completedBaieCount(){let n=nowMin();return s.timetable.filter(x=>n>=toMin(x.end)).length}
+function currentBaieTask(){
+ if(!s.timetable.length)return'等待 Mufy 生成时间表。';
+ let n=nowMin(),item=s.timetable.find(x=>n>=toMin(x.start)&&n<toMin(x.end));
+ if(item)return `${item.start}-${item.end}｜${item.task}`;
+ let first=s.timetable[0],last=s.timetable[s.timetable.length-1];
+ if(n<toMin(first.start))return `未开始，下一项：${first.start}-${first.end}｜${first.task}`;
+ return `今日白厄时间表已结束。最后一项：${last.start}-${last.end}｜${last.task}`;
+}
+function applyBg(){
+ const bg=s.bgData||s.bgUrl,full=$('fullGal'),prev=$('bgPreview');
+ if(bg){full.style.backgroundImage=`linear-gradient(180deg,rgba(4,8,18,.18),rgba(4,8,18,.44) 32%,rgba(4,8,18,.76) 100%),url("${bg}")`;prev.style.backgroundImage=`linear-gradient(180deg,rgba(10,16,30,.25),rgba(10,16,30,.65)),url("${bg}")`;$('bgPreviewLabel').textContent=s.bgData?'当前：已上传背景图':'当前：URL 背景图'}
+ else{full.style.backgroundImage='linear-gradient(180deg,rgba(4,8,18,.18),rgba(4,8,18,.44) 32%,rgba(4,8,18,.76) 100%),linear-gradient(135deg,#1a243d,#0f1629 55%,#101a32)';prev.style.backgroundImage='linear-gradient(135deg,#1a243d,#0f1629 55%,#101a32)';$('bgPreviewLabel').textContent='当前：默认背景'}
+}
+function activeBeats(){return s.activeTrack==='start'?s.startBeats:s.activeTrack==='touch'?s.touchBeats:s.activeTrack==='complete'?s.completeBeats:s.studyBeats}
+function currentBeat(){return activeBeats()[s.beatIndex]||null}
+function renderHUD(){
+ $('fsMode').textContent=`${modeName(s.mode)}${s.running?'进行中':'待机'}`;$('fsTask').textContent='本轮目标：'+(s.userTask||'未填写');
+ $('fsTime').textContent=fmt(s.remaining);$('fsSub').textContent=`User ${s.tasks.filter(t=>t.done).length}/${s.tasks.length||0} · 白厄 ${completedBaieCount()}/${s.timetable.length||0}`;$('fsProgress').style.width=Math.min(100,(total()-s.remaining)/total()*100)+'%';
+ $('fsBaie').textContent='白厄当前任务：'+currentBaieTask();$('baieNow').textContent='白厄当前任务：'+currentBaieTask();$('fsPause').textContent=s.running?'暂停':'继续';
+ let b=currentBeat();
+ if(!b){$('fsPortrait').style.display='none';$('speakerName').textContent='白厄';$('fsTitle').textContent='等待脚本';$('fsMeta').textContent='普通界面不会展示解析正文。';$('fsText').textContent='导入并解析 Mufy 输出后，全屏界面会逐句显示正文并切换表情。';$('fsPage').textContent='第 1 句 / 共 1 句';return}
+ $('fsPortrait').style.display='block';$('fsPortrait').src=sprite[b.face]||sprite.bai_e_01_default_tender;$('speakerName').textContent=b.speaker;
+ $('fsTitle').textContent=s.activeTrack==='start'?'开始专注':s.activeTrack==='touch'?'触摸反应':s.activeTrack==='complete'?'完成反应':'沉浸式学习';
+ $('fsMeta').textContent=(b.face||'无表情')+'｜'+(meta[b.face]||'非法或未知表情');$('fsText').textContent=b.text;$('fsPage').textContent=`${s.activeTrack} · 第 ${s.beatIndex+1} 句 / 共 ${activeBeats().length} 句`;
+}
+function openGal(){if(!s.startBeats.length&&!s.studyBeats.length){toast('先导入脚本');return}$('fullGal').classList.add('active');renderHUD();enterRealFull()}
+function closeGal(){$('fullGal').classList.remove('active');if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{})}
+function enterRealFull(){let el=$('fullGal');if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen().catch(()=>toast('当前浏览器限制自动全屏，可继续使用网页覆盖全屏。'))}
+function nextBeat(){
+ let arr=activeBeats();if(!arr.length)return toast('没有脚本');
+ if(s.beatIndex<arr.length-1){s.beatIndex++}else if(s.activeTrack==='start'&&s.studyBeats.length){s.activeTrack='study';s.beatIndex=0}else{s.beatIndex=0}
+ save();renderHUD()
+}
+function prevBeat(){let arr=activeBeats();if(!arr.length)return;s.beatIndex=(s.beatIndex-1+arr.length)%arr.length;save();renderHUD()}
+function playTouch(){if(!s.touchBeats.length)return toast('没有触摸文案');s.activeTrack='touch';s.beatIndex=Math.floor(Math.random()*s.touchBeats.length);save();renderHUD()}
+function playCompleteReaction(){if(!s.completeBeats.length)return; s.activeTrack='complete';s.beatIndex=Math.floor(Math.random()*s.completeBeats.length);save();renderHUD()}
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');['promptTab','importTab'].forEach(id=>$(id).classList.add('hidden'));$(b.dataset.tab).classList.remove('hidden')});
+$('startBtn').onclick=()=>{sync();start()};
+$('pauseBtn').onclick=stop;$('resetBtn').onclick=()=>setMode(s.mode);
+['userTask','partnerTask','atmosphere','phase','purpose','energy','strict','planStart','planEnd','autoOpenGal','focusBgUrl'].forEach(id=>$(id).oninput=()=>sync());
+$('buildPrompt').onclick=()=>{sync();s.prompt=buildPrompt();$('promptOutput').value=s.prompt;save();toast('已生成 Prompt')};
+$('copyPrompt').onclick=()=>navigator.clipboard.writeText($('promptOutput').value||buildPrompt()).then(()=>toast('已复制 Prompt'));
+$('parseBtn').onclick=parse;$('clearImport').onclick=()=>{s.raw='';s.startBeats=[];s.studyBeats=[];s.touchBeats=[];s.completeBeats=[];s.timetable=[];s.beatIndex=0;$('visiblePaste').value='';$('mufyInput').value='';$('parseStatus').textContent='尚未导入脚本。';save();render();toast('已清空内部导入')};
+$('openFullGal').onclick=openGal;$('nextBeatBtn').onclick=nextBeat;$('fsNext').onclick=nextBeat;$('fsPrev').onclick=prevBeat;$('fsClose').onclick=closeGal;$('fsRealFull').onclick=enterRealFull;$('fsTouch').onclick=playTouch;$('fsPortrait').onclick=playTouch;
+$('fsPause').onclick=()=>{s.running?stop():start();renderHUD()};
+$('applyBgUrl').onclick=()=>{s.bgUrl=$('focusBgUrl').value.trim();if(s.bgUrl)s.bgData='';save();applyBg();toast(s.bgUrl?'已应用 URL 背景':'请输入 URL')};
+$('clearBgBtn').onclick=()=>{s.bgUrl='';s.bgData='';$('focusBgUrl').value='';save();applyBg();toast('已恢复默认背景')};
+$('focusBgFile').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=ev=>{s.bgData=ev.target.result;s.bgUrl='';$('focusBgUrl').value='';save();applyBg();toast('已上传背景图')};r.readAsDataURL(f)};
+$('copyPlan').onclick=()=>navigator.clipboard.writeText(`计划：${s.userTask}\n时段：${s.planStart}-${s.planEnd}\n能量：${s.energy}\n监督：${s.strict}`).then(()=>toast('已复制计划'));
+$('clearDay').onclick=()=>{if(!confirm('确定清空今日数据吗？'))return;localStorage.removeItem(storeKey);s=load();stop();closeGal();render();toast('已清空')};
+document.addEventListener('keydown',e=>{if(!$('fullGal').classList.contains('active'))return;if(e.key==='Escape')closeGal();if(e.key==='ArrowRight')nextBeat();if(e.key==='ArrowLeft')prevBeat();if(e.key==='t')playTouch()});
+setInterval(()=>{renderHUD();renderTable();renderScores()},15000);
+render();
+})();
+</script>
+</body>
+</html>
